@@ -16,17 +16,7 @@ public class GameRoom : MonoBehaviourPunCallbacks, IPunObservable
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        /*if(stream.IsWriting)
-        {
-            stream.SendNext(isReady);
-        }
-        else
-        {
-            if (DebugMode)
-                return;
-            isReady = (bool)stream.ReceiveNext();
-            
-        }   */
+
     }
 
     #region PN Callbacks

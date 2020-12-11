@@ -2,7 +2,7 @@
 using Photon.Pun;
 using PN = Photon.Pun.PhotonNetwork;
 using Photon.Realtime;
-
+using System.Collections.Generic;
 
 public class GridButtons : MonoBehaviourPunCallbacks
 {
@@ -12,7 +12,6 @@ public class GridButtons : MonoBehaviourPunCallbacks
     [Header("Size grid [x][x]")][SerializeField] private int gridSize = 3;
 
     private CellOfGrid[,] _grid;
-
 
     private void Start()
     {
@@ -30,19 +29,27 @@ public class GridButtons : MonoBehaviourPunCallbacks
                 }
             }
         }
-        else
-        {
-            GameObject[] cells = GameObject.FindGameObjectsWithTag("Cell");
-            Debug.Log("Setted " + cells.Length);
-            for (int i = 0; i < cells.Length; i++)
-                cells[i].transform.SetParent(gameObject.transform);
-        }
+
         
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
         base.OnPlayerEnteredRoom(newPlayer);
+
+        if(PN.IsMasterClient)
+        {
+            int[] viewsID = new int[gridSize * gridSize];
+
+            for(int j = 0; j < gridSize; j++)
+                for(int i = 0; i < gridSize; i++)
+                {
+                    viewsID[j * gridSize + i] = _grid[j, i].photonView.ViewID;
+                }
+            Debug.Log(viewsID);
+
+            photonView.RPC("RPC_SetParent", RpcTarget.Others, viewsID);
+        }
     }
 
 
@@ -54,12 +61,12 @@ public class GridButtons : MonoBehaviourPunCallbacks
 
 
     [PunRPC]
-    public void RPC_SetParent()
-    {
-        GameObject[] cells = GameObject.FindGameObjectsWithTag("Cell");
-
-        for (int i = 0; i < cells.Length; i++)
-            cells[i].transform.SetParent(gameObject.transform);
+    public void RPC_SetParent(int[] obj)
+    { 
+        foreach(var id in obj)
+        {
+            PhotonView.Find((int) id).gameObject.transform.SetParent(gameObject.transform);
+        }
     }
 
     public void OnCellClicked(CellOfGrid cell)
